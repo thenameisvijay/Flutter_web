@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:zensar_challenge/constant.dart';
+import 'package:zensar_challenge/ui/main/body_container.dart';
 
 class WebView extends StatelessWidget {
   const WebView({Key? key}) : super(key: key);
@@ -8,7 +9,7 @@ class WebView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(padding: const EdgeInsets.symmetric(vertical: defaultPadding, horizontal: leftPadding),
-    child: Row(
+    child: Column(
       children: <Widget>[
         Container(
           child: const Text(
@@ -16,7 +17,8 @@ class WebView extends StatelessWidget {
             style: TextStyle(
                 fontWeight: FontWeight.bold, color: Colors.white, fontSize: logoTitle),
           ),
-        )
+        ),
+        const MainBody()
       ],
     ));
   }
