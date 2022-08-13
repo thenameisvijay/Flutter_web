@@ -13,7 +13,7 @@ class HomeScreen extends StatelessWidget{
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [Color.fromRGBO(195, 20, 50, 1.0),
-              Color.fromRGBO(36, 11, 54, 1.0)])),
+                Color.fromRGBO(36, 11, 54, 1.0)])),
       child: Scaffold(
           // By defaut, Scaffold background is white
           // Set its value to transparent
