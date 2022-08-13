@@ -20,7 +20,7 @@ class MainBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return showContainer();
+    return showSearchView();
   }
 
   Widget showSearchView() {
