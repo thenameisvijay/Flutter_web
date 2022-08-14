@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'dart:developer';
+
 import 'package:http/http.dart' as http;
-import 'package:zensar_challenge/ui/main/model/member.dart';
 import 'package:zensar_challenge/constant.dart';
+import 'package:zensar_challenge/ui/main/model/member.dart';
 import 'package:zensar_challenge/ui/main/model/user_model.dart';
 
 class ApiService {
-
   Future<List<MemberModel>?> getMember() async {
     try {
       var uri = Uri.parse(url);
@@ -21,16 +21,23 @@ class ApiService {
     }
   }
 
-  Future<List<UserModel>?> getUsers() async {
+  static Future<List<MemberModel>> fetchData() async {
+    //
+    final _completer = Completer<List<MemberModel>>();
+
     try {
-      var url = Uri.parse(new_url);
-      var response = await http.get(url);
-      if (response.statusCode == 200) {
-        List<UserModel> _model = userModelFromJson(response.body);
-        return _model;
+      var uri = Uri.parse(url);
+      final resp = await http.get(uri);
+
+      if (resp.statusCode == 200) {
+        //
+        final _data = memberModelFromJson(resp.body);
+        _completer.complete(_data);
       }
-    } catch (e) {
-      log(e.toString());
+    } catch (exc) {
+      _completer.completeError(<MemberModel>[]);
     }
+
+    return _completer.future;
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:zensar_challenge/constant.dart';
 import 'package:zensar_challenge/network/api_service.dart';
 import 'package:zensar_challenge/ui/main/model/member.dart';
 
@@ -23,7 +24,7 @@ class _HomeState extends State<HomeScreen> {
 
   void _getData() async {
     _userModel = (await ApiService().getMember())!;
-    Future.delayed(const Duration(seconds: 1)).then((value) => setState(() {}));
+    Future.delayed(defaultDuration).then((value) => setState(() {}));
   }
 
   @override
@@ -37,32 +38,79 @@ class _HomeState extends State<HomeScreen> {
               Color.fromRGBO(195, 20, 50, 1.0),
               Color.fromRGBO(36, 11, 54, 1.0)
             ])),
-        child: Scaffold(
-          // By default, Scaffold background is white
-          // Set its value to transparent
-          backgroundColor: Colors.transparent,
-          body: _userModel == null || _userModel!.isEmpty
-              ? const Center(
-                  child: CircularProgressIndicator(),
-                )
-              : Card(
-                  margin: const EdgeInsets.symmetric(
-                      vertical: 2.0, horizontal: 200.0),
-                  elevation: 5,
-                  child: ListView.separated(
-                    physics: const BouncingScrollPhysics(),
-                    shrinkWrap: true,
-                    itemCount: _userModel!.length,
-                    separatorBuilder: (BuildContext context, int index) =>
-                        const Divider(
-                            height: 1.5,
-                            color: Color.fromRGBO(36, 11, 54, 1.0)),
-                    itemBuilder: (context, index) {
-                      return SizedBox(height: 60, child: getItem(index));
-                    },
-                  ),
-                ),
-        ));
+        child: initView());
+  }
+
+  Widget initView() {
+    return Scaffold(
+        // By default, Scaffold background is white
+        // Set its value to transparent
+        backgroundColor: Colors.transparent,
+        body: _userModel == null || _userModel!.isEmpty
+            ? const Center(
+                child: CircularProgressIndicator(),
+              )
+            : Column(
+                children: <Widget>[getSearchView(), getListView()],
+              ));
+  }
+
+  Widget getListView() {
+    return Expanded(
+        child: Card(
+      margin: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 200.0),
+      elevation: 5,
+      child: ListView.separated(
+        physics: const BouncingScrollPhysics(),
+        shrinkWrap: true,
+        itemCount: _userModel!.length,
+        separatorBuilder: (BuildContext context, int index) =>
+            const Divider(height: 1.5, color: Color.fromRGBO(36, 11, 54, 1.0)),
+        itemBuilder: (context, index) {
+          return SizedBox(height: 60, child: getItem(index));
+        },
+      ),
+    ));
+  }
+
+  Widget getSearchView() {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 190),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(46),
+        boxShadow: [
+          BoxShadow(
+            offset: const Offset(0, -2),
+            blurRadius: 30,
+            color: Colors.black.withOpacity(0.16),
+          ),
+        ],
+      ),
+      child: Row(
+        children: <Widget>[
+          const SizedBox(width: 2),
+          const Text(
+            "Search by name, email or role",
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          ),
+          const Spacer(), //space between search button and text field
+          MaterialButton(
+            height: 50.0,
+            minWidth: 100.0,
+            color: Colors.red,
+            child: const Text(
+              "Search",
+              style: TextStyle(fontSize: 18, color: Colors.white),
+            ),
+            shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(30.0))),
+            onPressed: () {},
+          ),
+        ],
+      ),
+    );
   }
 
   Widget getItem(int index) {
@@ -121,25 +169,18 @@ class _HomeState extends State<HomeScreen> {
             },
           ),
         ),
-        Container(
-          padding: const EdgeInsets.all(10),
-          child: Text(
-            _userModel![index].name,
-            textAlign: TextAlign.start,
-          ),
+        Text(
+          _userModel![index].name,
+          textAlign: TextAlign.start,
         ),
-        Container(
-            padding: const EdgeInsets.all(10),
-            child: Text(
-              _userModel![index].email,
-              textAlign: TextAlign.start,
-            )),
-        Container(
-            padding: const EdgeInsets.all(10),
-            child: Text(
-              _userModel![index].role,
-              textAlign: TextAlign.start,
-            )),
+        Text(
+          _userModel![index].email,
+          textAlign: TextAlign.start,
+        ),
+        Text(
+          _userModel![index].role,
+          textAlign: TextAlign.start,
+        ),
       ],
     );
   }
@@ -335,3 +376,22 @@ class _MyHomePageState extends State<HomeScreen> {
     );
   }
 }*/
+
+/*
+   Card(
+              margin:
+                  const EdgeInsets.symmetric(vertical: 2.0, horizontal: 200.0),
+              elevation: 5,
+              child: ListView.separated(
+                physics: const BouncingScrollPhysics(),
+                shrinkWrap: true,
+                itemCount: _userModel!.length,
+                separatorBuilder: (BuildContext context, int index) =>
+                    const Divider(
+                        height: 1.5, color: Color.fromRGBO(36, 11, 54, 1.0)),
+                itemBuilder: (context, index) {
+                  return SizedBox(height: 60, child: getItem(index));
+                },
+              ),
+            ),
+            * */
