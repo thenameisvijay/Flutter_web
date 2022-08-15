@@ -11,10 +11,13 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeState extends State<HomeScreen> {
-  late List<MemberModel>? _userModel = [];
+  late List<MemberModel>? _memberModel = [];
+  late List<MemberModel>? _filterMember = [];
   bool isChecked = false;
   var selectedIndexes = [];
   List multipleSelected = [];
+  late BuildContext dialogContext;
+  final myController = TextEditingController();
 
   @override
   void initState() {
@@ -23,7 +26,7 @@ class _HomeState extends State<HomeScreen> {
   }
 
   void _getData() async {
-    _userModel = (await ApiService().getMember())!;
+    _memberModel = (await ApiService().getMember())!;
     Future.delayed(defaultDuration).then((value) => setState(() {}));
   }
 
@@ -46,28 +49,32 @@ class _HomeState extends State<HomeScreen> {
         // By default, Scaffold background is white
         // Set its value to transparent
         backgroundColor: Colors.transparent,
-        body: _userModel == null || _userModel!.isEmpty
+        body: _memberModel == null || _memberModel!.isEmpty
             ? const Center(
                 child: CircularProgressIndicator(),
               )
             : Column(
-                children: <Widget>[getSearchView(), getListView()],
+                children: <Widget>[
+                  getSearchView(),
+                  getRowHeader(),
+                  getListView(_memberModel)
+                ],
               ));
   }
 
-  Widget getListView() {
+  Widget getListView(List<MemberModel>? memberModel) {
     return Expanded(
         child: Card(
-      margin: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 200.0),
+      margin: const EdgeInsets.only(left: 200.0, right: 200.0, bottom: 150.0),
       elevation: 5,
       child: ListView.separated(
         physics: const BouncingScrollPhysics(),
         shrinkWrap: true,
-        itemCount: _userModel!.length,
+        itemCount: memberModel!.length,
         separatorBuilder: (BuildContext context, int index) =>
             const Divider(height: 1.5, color: Color.fromRGBO(36, 11, 54, 1.0)),
         itemBuilder: (context, index) {
-          return SizedBox(height: 60, child: getItem(index));
+          return SizedBox(height: 60, child: getItem(index, memberModel));
         },
       ),
     ));
@@ -76,7 +83,7 @@ class _HomeState extends State<HomeScreen> {
   Widget getSearchView() {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 190),
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.only(left: 50, right: 50, top: 10, bottom: 10),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(46),
@@ -91,11 +98,20 @@ class _HomeState extends State<HomeScreen> {
       child: Row(
         children: <Widget>[
           const SizedBox(width: 2),
-          const Text(
+          /*const Text(
             "Search by name, email or role",
             style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-          ),
-          const Spacer(), //space between search button and text field
+          ),*/
+          SizedBox(
+              width: 1000,
+              child: TextField(
+                controller: myController,
+                decoration: InputDecoration(
+                  hintText: "Search by name, email or role",
+                  hintStyle: TextStyle(color: Colors.grey[300]),
+                ),
+                textAlign: TextAlign.left,
+              )),
           MaterialButton(
             height: 50.0,
             minWidth: 100.0,
@@ -106,14 +122,49 @@ class _HomeState extends State<HomeScreen> {
             ),
             shape: const RoundedRectangleBorder(
                 borderRadius: BorderRadius.all(Radius.circular(30.0))),
-            onPressed: () {},
+            onPressed: () {
+              searchInList(myController.text);
+
+            },
           ),
         ],
       ),
     );
   }
 
-  Widget getItem(int index) {
+  void searchInList(String searchText) {
+    for (var element in _memberModel!) {
+      if (element.name.contains(searchText) || element.email.contains(searchText)
+          || element.role.contains(searchText)) {
+        _filterMember!.add(element);
+      }
+    }
+    if(_filterMember!.isNotEmpty){
+      getListView(_filterMember);
+      setState(() { _filterMember!.length; });
+
+    }
+  }
+
+  Future<dynamic> showCircularLoader() {
+    return showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (context) {
+        dialogContext = context;
+        return const Dialog(
+            backgroundColor: Colors.transparent,
+            // Retrieve the text that the user has entered by using the
+            // TextEditingController.
+            // content: Text(myController.text),
+            child: Center(
+              child: CircularProgressIndicator(),
+            ));
+      },
+    );
+  }
+
+  Widget getItem(int index, List<MemberModel>? memberModel) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -122,7 +173,7 @@ class _HomeState extends State<HomeScreen> {
         const SizedBox(
           height: 5.0,
         ),
-        getMemberDetail(index),
+        getMemberDetail(index, memberModel),
         const SizedBox(
           height: 5.0,
         ),
@@ -130,57 +181,120 @@ class _HomeState extends State<HomeScreen> {
     );
   }
 
-  Widget getMemberDetail(int index) {
+  Widget getRowHeader() {
+    return Card(
+        elevation: 5,
+        margin: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 200),
+        child: Container(
+            padding:
+                const EdgeInsets.only(left: 50, right: 50, top: 10, bottom: 10),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: const BorderRadius.only(
+                topRight: Radius.circular(10.0),
+                topLeft: Radius.circular(10.0),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  offset: const Offset(0, -2),
+                  blurRadius: 30,
+                  color: Colors.black.withOpacity(0.16),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              //Center Row contents vertically,
+              children: const [
+                Expanded(
+                    child: Center(
+                        child: Text(
+                  "    ",
+                  textAlign: TextAlign.start,
+                ))),
+                Expanded(
+                    child: Center(
+                        child: Text(
+                  "Name",
+                  textAlign: TextAlign.start,
+                  style: TextStyle(fontSize: 21),
+                ))),
+                Expanded(
+                    child: Center(
+                        child: Text(
+                  "Email",
+                  textAlign: TextAlign.start,
+                  style: TextStyle(fontSize: 21),
+                ))),
+                Expanded(
+                    child: Center(
+                        child: Text(
+                  "Role",
+                  textAlign: TextAlign.start,
+                  style: TextStyle(fontSize: 21),
+                ))),
+              ],
+            )));
+  }
+
+  Widget getMemberDetail(int index, List<MemberModel>? memberModel) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       crossAxisAlignment: CrossAxisAlignment.center,
       //Center Row contents vertically,
       children: [
-        Container(
-          child: Checkbox(
-            checkColor: Colors.white,
-            fillColor: MaterialStateProperty.resolveWith(getColor),
-            // value: selectedIndexes[index]["value"],
-            value: isChecked,
-            // value: selectedIndexes.contains(index),
-            /*onChanged: (_) {
-                              if (selectedIndexes.contains(index)) {
-                                selectedIndexes.remove(index);   // unselect
-                              } else {
-                                selectedIndexes.add(index);  // select
-                              }
-                            },*/
-            onChanged: (bool? value) {
-              /*setState(() {
-                                isChecked = value!;
-                              });*/
+        Expanded(
+            child: Center(
+                child: Checkbox(
+          checkColor: Colors.white,
+          fillColor: MaterialStateProperty.resolveWith(getColor),
+          // value: selectedIndexes[index]["value"],
+          value: isChecked,
+          // value: selectedIndexes.contains(index),
+          /*onChanged: (_) {
+                            if (selectedIndexes.contains(index)) {
+                              selectedIndexes.remove(index);   // unselect
+                            } else {
+                              selectedIndexes.add(index);  // select
+                            }
+                          },*/
+          onChanged: (bool? value) {
+            /*setState(() {
+                              isChecked = value!;
+                            });*/
 
-              setState(() {
-                isChecked = value!;
-                /*selectedIndexes[index] = value;
-                                if (multipleSelected
-                                    .contains(selectedIndexes[index])) {
-                                  multipleSelected
-                                      .remove(selectedIndexes[index]);
-                                } else {
-                                  multipleSelected.add(selectedIndexes[index]);
-                                }*/
-              });
-            },
-          ),
-        ),
-        Text(
-          _userModel![index].name,
+            setState(() {
+              isChecked = value!;
+              /*selectedIndexes[index] = value;
+                              if (multipleSelected
+                                  .contains(selectedIndexes[index])) {
+                                multipleSelected
+                                    .remove(selectedIndexes[index]);
+                              } else {
+                                multipleSelected.add(selectedIndexes[index]);
+                              }*/
+            });
+          },
+        ))),
+        Expanded(
+            child: Center(
+                child: Text(
+          _memberModel![index].name,
           textAlign: TextAlign.start,
-        ),
-        Text(
-          _userModel![index].email,
+        ))),
+        Expanded(
+            child: Center(
+                child: Text(
+          _memberModel![index].email,
           textAlign: TextAlign.start,
-        ),
-        Text(
-          _userModel![index].role,
+        ))),
+        Expanded(
+            child: Center(
+                child: Text(
+          _memberModel![index].role,
           textAlign: TextAlign.start,
-        ),
+        ))),
       ],
     );
   }
@@ -196,10 +310,17 @@ class _HomeState extends State<HomeScreen> {
     }
     return Colors.red;
   }
+
+  @override
+  void dispose() {
+    // Clean up the controller when the widget is disposed.
+    myController.dispose();
+    super.dispose();
+  }
 }
 
 /*class _HomeState extends State<HomeScreen> {
-  late List<UserModel>? _userModel = [];
+  late List<UserModel>? _memberModel = [];
   @override
   void initState() {
     super.initState();
@@ -207,7 +328,7 @@ class _HomeState extends State<HomeScreen> {
   }
 
   void _getData() async {
-    _userModel = (await DataTableApi().getUsers())!;
+    _memberModel = (await DataTableApi().getUsers())!;
     Future.delayed(const Duration(seconds: 1)).then((value) => setState(() {}));
   }
 
@@ -217,12 +338,12 @@ class _HomeState extends State<HomeScreen> {
       appBar: AppBar(
         title: const Text('REST API Example'),
       ),
-      body: _userModel == null || _userModel!.isEmpty
+      body: _memberModel == null || _memberModel!.isEmpty
           ? const Center(
         child: CircularProgressIndicator(),
       )
           : ListView.builder(
-        itemCount: _userModel!.length,
+        itemCount: _memberModel!.length,
         itemBuilder: (context, index) {
           return Card(
             child: Column(
@@ -230,8 +351,8 @@ class _HomeState extends State<HomeScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    Text(_userModel![index].id.toString()),
-                    Text(_userModel![index].username),
+                    Text(_memberModel![index].id.toString()),
+                    Text(_memberModel![index].username),
                   ],
                 ),
                 const SizedBox(
@@ -240,8 +361,8 @@ class _HomeState extends State<HomeScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    Text(_userModel![index].email),
-                    Text(_userModel![index].website),
+                    Text(_memberModel![index].email),
+                    Text(_memberModel![index].website),
                   ],
                 ),
               ],
@@ -254,7 +375,7 @@ class _HomeState extends State<HomeScreen> {
 }*/
 
 /*class _HomeState extends State<HomeScreen> {
-  late List<MemberModel>? _userModel = [];
+  late List<MemberModel>? _memberModel = [];
 
   @override
   void initState() {
@@ -263,7 +384,7 @@ class _HomeState extends State<HomeScreen> {
   }
 
   void _getData() async {
-    _userModel = (await DataTableApi.fetchData());
+    _memberModel = (await DataTableApi.fetchData());
     Future.delayed(const Duration(seconds: 1)).then((value) => setState(() {}));
   }
 
@@ -273,12 +394,12 @@ class _HomeState extends State<HomeScreen> {
       appBar: AppBar(
         title: const Text('REST API Example'),
       ),
-      body: _userModel == null || _userModel!.isEmpty
+      body: _memberModel == null || _memberModel!.isEmpty
           ? const Center(
         child: CircularProgressIndicator(),
       )
           : ListView.builder(
-        itemCount: _userModel!.length,
+        itemCount: _memberModel!.length,
         itemBuilder: (context, index) {
           return Card(
             child: Column(
@@ -286,8 +407,8 @@ class _HomeState extends State<HomeScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    Text(_userModel![index].id.toString()),
-                    Text(_userModel![index].name),
+                    Text(_memberModel![index].id.toString()),
+                    Text(_memberModel![index].name),
                   ],
                 ),
                 const SizedBox(
@@ -296,8 +417,8 @@ class _HomeState extends State<HomeScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    Text(_userModel![index].email),
-                    Text(_userModel![index].role),
+                    Text(_memberModel![index].email),
+                    Text(_memberModel![index].role),
                   ],
                 ),
               ],
@@ -385,7 +506,7 @@ class _MyHomePageState extends State<HomeScreen> {
               child: ListView.separated(
                 physics: const BouncingScrollPhysics(),
                 shrinkWrap: true,
-                itemCount: _userModel!.length,
+                itemCount: _memberModel!.length,
                 separatorBuilder: (BuildContext context, int index) =>
                     const Divider(
                         height: 1.5, color: Color.fromRGBO(36, 11, 54, 1.0)),

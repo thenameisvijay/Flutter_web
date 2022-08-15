@@ -9,7 +9,7 @@ class UserDataNotifier with ChangeNotifier {
     fetchData();
   }
 
-  List<MemberModel> get userModel => _userModel;
+  List<MemberModel> get userModel => _memberModel;
 
   // SORT COLUMN INDEX...
 
@@ -38,14 +38,14 @@ class UserDataNotifier with ChangeNotifier {
 
   // -------------------------------------- INTERNALS --------------------------------------------
 
-  var _userModel = <MemberModel>[];
+  var _memberModel = <MemberModel>[];
 
   int _sortColumnIndex = 0;
   bool _sortAscending = true;
   int _rowsPerPage = PaginatedDataTable.defaultRowsPerPage;
 
   Future<void> fetchData() async {
-    _userModel = await ApiService.fetchData();
+    _memberModel = await ApiService.fetchData();
     notifyListeners();
   }
 }
