@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:zensar_challenge/constant.dart';
 import 'package:zensar_challenge/network/api_service.dart';
@@ -12,7 +14,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeState extends State<HomeScreen> {
   late List<MemberModel>? _memberModel = [];
-  late List<MemberModel>? _filterMember = [];
+  late final List<MemberModel>? _filterMember = [];
   bool isChecked = false;
   var selectedIndexes = [];
   List multipleSelected = [];
@@ -27,6 +29,7 @@ class _HomeState extends State<HomeScreen> {
 
   void _getData() async {
     _memberModel = (await ApiService().getMember())!;
+    _filterMember!.addAll(_memberModel!);
     Future.delayed(defaultDuration).then((value) => setState(() {}));
   }
 
@@ -82,36 +85,30 @@ class _HomeState extends State<HomeScreen> {
 
   Widget getSearchView() {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 190),
-      padding: const EdgeInsets.only(left: 50, right: 50, top: 10, bottom: 10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(46),
-        boxShadow: [
-          BoxShadow(
-            offset: const Offset(0, -2),
-            blurRadius: 30,
-            color: Colors.black.withOpacity(0.16),
-          ),
-        ],
-      ),
+      margin: const EdgeInsets.only(top: 10, bottom: 10, right: 200, left: 800),
+      padding: const EdgeInsets.only(left: 20, right: 0, top: 10, bottom: 10),
       child: Row(
         children: <Widget>[
-          const SizedBox(width: 2),
+          const SizedBox(width: 20),
           /*const Text(
             "Search by name, email or role",
             style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
           ),*/
           SizedBox(
-              width: 1000,
+              width: 500,
               child: TextField(
                 controller: myController,
                 decoration: InputDecoration(
-                  hintText: "Search by name, email or role",
-                  hintStyle: TextStyle(color: Colors.grey[300]),
-                ),
+                    fillColor: Colors.white,
+                    filled: true,
+                    hintText: "Search by name, email or role",
+                    hintStyle: TextStyle(color: Colors.grey[300], fontSize: 19),
+                    prefixIcon: const Icon(Icons.search),
+                    border: const OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(25.0)))),
                 textAlign: TextAlign.left,
               )),
+          const SizedBox(width: 30),
           MaterialButton(
             height: 50.0,
             minWidth: 100.0,
@@ -124,7 +121,6 @@ class _HomeState extends State<HomeScreen> {
                 borderRadius: BorderRadius.all(Radius.circular(30.0))),
             onPressed: () {
               searchInList(myController.text);
-
             },
           ),
         ],
@@ -133,16 +129,45 @@ class _HomeState extends State<HomeScreen> {
   }
 
   void searchInList(String searchText) {
-    for (var element in _memberModel!) {
-      if (element.name.contains(searchText) || element.email.contains(searchText)
-          || element.role.contains(searchText)) {
-        _filterMember!.add(element);
+    if (searchText.isNotEmpty) {
+      List<MemberModel> tempSearchList = <MemberModel>[];
+      // if (_memberModel!.isEmpty) {
+      _memberModel!.clear();
+      _memberModel!.addAll(_filterMember!);
+      // }
+      for (var element in _memberModel!) {
+        if (element.name.toLowerCase().contains(searchText) ||
+            element.email.toLowerCase().contains(searchText) ||
+            element.role.toLowerCase().contains(searchText)) {
+          tempSearchList.add(element);
+        }
       }
-    }
-    if(_filterMember!.isNotEmpty){
-      getListView(_filterMember);
-      setState(() { _filterMember!.length; });
+      if (tempSearchList.isNotEmpty) {
+        getListView(tempSearchList);
+        // _filterMember!.addAll(_memberModel!);
+        Future.delayed(defaultDuration).then((value) => setState(() {
+              _memberModel!.clear();
+              _memberModel!.addAll(tempSearchList);
+            }));
+      } else {
+        /*ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text("No Data Found!")));*/
 
+        Timer? timer = Timer(const Duration(milliseconds: 2000), () {
+          Navigator.of(context, rootNavigator: true).pop();
+        });
+        showDialog(
+            context: context,
+            builder: (context) {
+              return const AlertDialog(
+                content: Text("No Data Found!"),
+              );
+            }).then((value) {
+          // dispose the timer in case something else has triggered the dismiss.
+          timer?.cancel();
+          timer = null;
+        });
+      }
     }
   }
 
@@ -186,13 +211,12 @@ class _HomeState extends State<HomeScreen> {
         elevation: 5,
         margin: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 200),
         child: Container(
-            padding:
-                const EdgeInsets.only(left: 50, right: 50, top: 10, bottom: 10),
+            padding: const EdgeInsets.only(top: 10, bottom: 10),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: const BorderRadius.only(
-                topRight: Radius.circular(10.0),
-                topLeft: Radius.circular(10.0),
+                topRight: Radius.circular(15.0),
+                topLeft: Radius.circular(15.0),
               ),
               boxShadow: [
                 BoxShadow(
@@ -207,12 +231,6 @@ class _HomeState extends State<HomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.center,
               //Center Row contents vertically,
               children: const [
-                Expanded(
-                    child: Center(
-                        child: Text(
-                  "    ",
-                  textAlign: TextAlign.start,
-                ))),
                 Expanded(
                     child: Center(
                         child: Text(
@@ -244,39 +262,6 @@ class _HomeState extends State<HomeScreen> {
       crossAxisAlignment: CrossAxisAlignment.center,
       //Center Row contents vertically,
       children: [
-        Expanded(
-            child: Center(
-                child: Checkbox(
-          checkColor: Colors.white,
-          fillColor: MaterialStateProperty.resolveWith(getColor),
-          // value: selectedIndexes[index]["value"],
-          value: isChecked,
-          // value: selectedIndexes.contains(index),
-          /*onChanged: (_) {
-                            if (selectedIndexes.contains(index)) {
-                              selectedIndexes.remove(index);   // unselect
-                            } else {
-                              selectedIndexes.add(index);  // select
-                            }
-                          },*/
-          onChanged: (bool? value) {
-            /*setState(() {
-                              isChecked = value!;
-                            });*/
-
-            setState(() {
-              isChecked = value!;
-              /*selectedIndexes[index] = value;
-                              if (multipleSelected
-                                  .contains(selectedIndexes[index])) {
-                                multipleSelected
-                                    .remove(selectedIndexes[index]);
-                              } else {
-                                multipleSelected.add(selectedIndexes[index]);
-                              }*/
-            });
-          },
-        ))),
         Expanded(
             child: Center(
                 child: Text(
@@ -318,201 +303,3 @@ class _HomeState extends State<HomeScreen> {
     super.dispose();
   }
 }
-
-/*class _HomeState extends State<HomeScreen> {
-  late List<UserModel>? _memberModel = [];
-  @override
-  void initState() {
-    super.initState();
-    _getData();
-  }
-
-  void _getData() async {
-    _memberModel = (await DataTableApi().getUsers())!;
-    Future.delayed(const Duration(seconds: 1)).then((value) => setState(() {}));
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('REST API Example'),
-      ),
-      body: _memberModel == null || _memberModel!.isEmpty
-          ? const Center(
-        child: CircularProgressIndicator(),
-      )
-          : ListView.builder(
-        itemCount: _memberModel!.length,
-        itemBuilder: (context, index) {
-          return Card(
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Text(_memberModel![index].id.toString()),
-                    Text(_memberModel![index].username),
-                  ],
-                ),
-                const SizedBox(
-                  height: 20.0,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Text(_memberModel![index].email),
-                    Text(_memberModel![index].website),
-                  ],
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-}*/
-
-/*class _HomeState extends State<HomeScreen> {
-  late List<MemberModel>? _memberModel = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _getData();
-  }
-
-  void _getData() async {
-    _memberModel = (await DataTableApi.fetchData());
-    Future.delayed(const Duration(seconds: 1)).then((value) => setState(() {}));
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('REST API Example'),
-      ),
-      body: _memberModel == null || _memberModel!.isEmpty
-          ? const Center(
-        child: CircularProgressIndicator(),
-      )
-          : ListView.builder(
-        itemCount: _memberModel!.length,
-        itemBuilder: (context, index) {
-          return Card(
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Text(_memberModel![index].id.toString()),
-                    Text(_memberModel![index].name),
-                  ],
-                ),
-                const SizedBox(
-                  height: 20.0,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Text(_memberModel![index].email),
-                    Text(_memberModel![index].role),
-                  ],
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-}*/
-
-/*class HomeScreen extends StatefulWidget {
-
-  const HomeScreen({Key? key}) : super(key: key);
-
-  @override
-  _MyHomePageState createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<HomeScreen> {
-
-  @override
-  void initState() {
-    super.initState();
-    DataTableApi.fetchData();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: Text("Flutter - API Implementation"),
-      ),
-      body: _buildBody(context),
-    );
-  }
-
-  // build list view & manage states
-  FutureBuilder<List<MemberModel>> _buildBody(BuildContext context) {
-    final DataTableApi httpService = DataTableApi();
-
-    return FutureBuilder<List<MemberModel>>(
-      future: httpService.getMember(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.done) {
-          final List<MemberModel>? posts = snapshot.data;
-          return _buildPosts(context, posts!);
-        } else {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
-        }
-      },
-    );
-  }
-
-  // build list view & its tile
-  ListView _buildPosts(BuildContext context, List<MemberModel> posts) {
-    return ListView.builder(
-      itemCount: posts.length,
-      padding: const EdgeInsets.all(8),
-      itemBuilder: (context, index) {
-        return Card(
-          elevation: 4,
-          child: ListTile(
-            title: Text(
-              posts[index].name,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            subtitle: Text(posts[index].email),
-          ),
-        );
-      },
-    );
-  }
-}*/
-
-/*
-   Card(
-              margin:
-                  const EdgeInsets.symmetric(vertical: 2.0, horizontal: 200.0),
-              elevation: 5,
-              child: ListView.separated(
-                physics: const BouncingScrollPhysics(),
-                shrinkWrap: true,
-                itemCount: _memberModel!.length,
-                separatorBuilder: (BuildContext context, int index) =>
-                    const Divider(
-                        height: 1.5, color: Color.fromRGBO(36, 11, 54, 1.0)),
-                itemBuilder: (context, index) {
-                  return SizedBox(height: 60, child: getItem(index));
-                },
-              ),
-            ),
-            * */
