@@ -1,3 +1,4 @@
+import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show PaginatedDataTable;
@@ -9,9 +10,9 @@ class UserDataNotifier with ChangeNotifier {
     fetchData();
   }
 
-  List<MemberModel> get userModel => _memberModel;
-
-  // SORT COLUMN INDEX...
+  var completeData = <MemberModel>[];
+  var memberModel = <MemberModel>[];
+  List<MemberModel> get userModel => memberModel;
 
   int get sortColumnIndex => _sortColumnIndex;
 
@@ -20,32 +21,61 @@ class UserDataNotifier with ChangeNotifier {
     notifyListeners();
   }
 
-  // SORT ASCENDING....
-
-  bool get sortAscending => _sortAscending;
-
   set sortAscending(bool sortAscending) {
     _sortAscending = sortAscending;
     notifyListeners();
   }
-
-  int get rowsPerPage => _rowsPerPage;
 
   set rowsPerPage(int rowsPerPage) {
     _rowsPerPage = rowsPerPage;
     notifyListeners();
   }
 
-  // -------------------------------------- INTERNALS --------------------------------------------
+  set filterData(String searchText) {
+    if (searchText.isNotEmpty) {
+      List<MemberModel> tempSearchList = <MemberModel>[];
+      for (var element in memberModel) {
+        if (element.name.toLowerCase().contains(searchText) ||
+            element.email.toLowerCase().contains(searchText) ||
+            element.role.toLowerCase().contains(searchText)) {
+          tempSearchList.add(element);
+        }
+      }
+      memberModel.clear();
+      if (tempSearchList.isNotEmpty) {
+        memberModel.addAll(tempSearchList);
+      }
+    } else {
+      memberModel.clear();
+      memberModel.addAll(completeData);
+    }
+    notifyListeners();
+  }
 
-  var _memberModel = <MemberModel>[];
+  deleteItem(id){
+    print('Print User Id is- ${id}');
+    completeData.remove(id);
+    notifyListeners();
+  }
+
+  editItem(){
+    String objText = '{"id":"1", "name": "bezkoder", "email": "vijay@zensar.com", "role":"admin"}';
+    MemberModel user = MemberModel.fromJson(jsonDecode(objText));
+    memberModel[memberModel.indexWhere((element) => element.id == user.id)];
+    notifyListeners();
+  }
+
+  Future<void> fetchData() async {
+    completeData = (await ApiService().getMember())!;
+    memberModel.addAll(completeData);
+    notifyListeners();
+  }
 
   int _sortColumnIndex = 0;
   bool _sortAscending = true;
   int _rowsPerPage = PaginatedDataTable.defaultRowsPerPage;
 
-  Future<void> fetchData() async {
-    _memberModel = await ApiService.fetchData();
-    notifyListeners();
-  }
+  bool get sortAscending => _sortAscending;
+
+  int get rowsPerPage => _rowsPerPage;
 }
