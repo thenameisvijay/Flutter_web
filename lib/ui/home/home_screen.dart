@@ -2,8 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:zensar_challenge/constant.dart';
-import 'package:zensar_challenge/network/api_service.dart';
 import 'package:zensar_challenge/pagination/data_notifier.dart';
 import 'package:zensar_challenge/pagination/member_datasource.dart';
 import 'package:zensar_challenge/ui/main/model/member.dart';
@@ -29,22 +27,12 @@ class _HomeState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    // _getData();
+    // Future.delayed(defaultDuration).then((value) => setState(() {}));
     myController.addListener(() {});
-  }
-
-  void _getData() async {
-    _memberModel = (await ApiService().getMember())!;
-    pageList = _memberModel!.sublist(0, 10);
-    _filterMember!.addAll(_memberModel!);
-    // print("Size${test.length}");
-    Future.delayed(defaultDuration).then((value) => setState(() {}));
   }
 
   @override
   Widget build(BuildContext context) {
-    // final _provider = context.watch<UserDataNotifier>();
-
     return Container(
         decoration: const BoxDecoration(
             gradient: LinearGradient(
@@ -56,25 +44,6 @@ class _HomeState extends State<HomeScreen> {
             ])),
         child: initView());
   }
-
-  /*Widget initView() {
-    return Scaffold(
-        // By default, Scaffold background is white
-        // Set its value to transparent
-        backgroundColor: Colors.transparent,
-        body: pageList == null || pageList!.isEmpty
-            ? const Center(
-                child: CircularProgressIndicator(),
-              )
-            : Column(
-                children: <Widget>[
-                  getSearchView(),
-                  // getRowHeader(),
-                  // getListView(pageList),
-                  getDataTable(pageList),
-                ],
-              ));
-  }*/
 
   Widget initView() {
     return Scaffold(
@@ -98,14 +67,15 @@ class _HomeState extends State<HomeScreen> {
                   getSearchView(provider),
                   // getRowHeader(),
                   // getListView(pageList),
-                  getDataTable(_memberModel, provider, dataSource),
+                  getDataTable(_memberModel,  dataSource),
                 ],
               );
             })));
   }
 
-  Widget getDataTable(List<MemberModel>? data, UserDataNotifier provider,
+  Widget getDataTable(List<MemberModel>? data,
       MemberDataSource dataSource) {
+    // print("dataSource${dataSource.}");
     return Card(
         elevation: 5,
         margin: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 0),
@@ -149,12 +119,15 @@ class _HomeState extends State<HomeScreen> {
 
   Widget getSearchView(UserDataNotifier provider) {
     return Container(
-      margin: const EdgeInsets.only(top: 10, bottom: 10, right: 200, left: 800),
+      // color: Colors.blue,
+      // margin: const EdgeInsets.only(top: 10, bottom: 10, right: 200, left: 800),
       padding: const EdgeInsets.only(left: 20, right: 0, top: 10, bottom: 10),
-      // width: MediaQuery.of(context).size.width * 0.75,
+      // width: MediaQuery.of(context).size.width,
+      // width: double.infinity,
       child: Row(
         children: <Widget>[
-          const SizedBox(width: 20),
+          // const SizedBox(width: 20),
+          const Spacer(),
           SizedBox(
               width: 500,
               child: TextField(
@@ -174,7 +147,7 @@ class _HomeState extends State<HomeScreen> {
                   }
                 },
               )),
-          const SizedBox(width: 30),
+          const SizedBox(width: 15),
           MaterialButton(
             height: 50.0,
             minWidth: 100.0,
@@ -190,77 +163,10 @@ class _HomeState extends State<HomeScreen> {
               provider.filterData = myController.text;
             },
           ),
+          const SizedBox(width: 200),
         ],
       ),
     );
-  }
-
-  Widget getListView(List<MemberModel>? memberModel) {
-    return Expanded(
-        child: Card(
-      margin: const EdgeInsets.only(left: 200.0, right: 200.0, bottom: 150.0),
-      elevation: 5,
-      child: ListView.separated(
-        physics: const BouncingScrollPhysics(),
-        shrinkWrap: true,
-        itemCount: memberModel!.length,
-        separatorBuilder: (BuildContext context, int index) =>
-            const Divider(height: 1.5, color: Color.fromRGBO(36, 11, 54, 1.0)),
-        itemBuilder: (context, index) {
-          return SizedBox(height: 60, child: getItem(index, memberModel));
-        },
-      ),
-    ));
-  }
-
-  Widget getRowHeader() {
-    return Card(
-        elevation: 5,
-        margin: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 200),
-        child: Container(
-            padding: const EdgeInsets.only(top: 10, bottom: 10),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: const BorderRadius.only(
-                topRight: Radius.circular(15.0),
-                topLeft: Radius.circular(15.0),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  offset: const Offset(0, -2),
-                  blurRadius: 30,
-                  color: Colors.black.withOpacity(0.16),
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              //Center Row contents vertically,
-              children: const [
-                Expanded(
-                    child: Center(
-                        child: Text(
-                  "Name",
-                  textAlign: TextAlign.start,
-                  style: TextStyle(fontSize: 21),
-                ))),
-                Expanded(
-                    child: Center(
-                        child: Text(
-                  "Email",
-                  textAlign: TextAlign.start,
-                  style: TextStyle(fontSize: 21),
-                ))),
-                Expanded(
-                    child: Center(
-                        child: Text(
-                  "Role",
-                  textAlign: TextAlign.start,
-                  style: TextStyle(fontSize: 21),
-                ))),
-              ],
-            )));
   }
 
   Future<dynamic> showCircularLoader() {
@@ -278,51 +184,6 @@ class _HomeState extends State<HomeScreen> {
               child: CircularProgressIndicator(),
             ));
       },
-    );
-  }
-
-  Widget getItem(int index, List<MemberModel>? memberModel) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      //Center Row contents horizontally,
-      children: [
-        const SizedBox(
-          height: 5.0,
-        ),
-        getMemberDetail(index, memberModel),
-        const SizedBox(
-          height: 5.0,
-        ),
-      ],
-    );
-  }
-
-  Widget getMemberDetail(int index, List<MemberModel>? memberModel) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      //Center Row contents vertically,
-      children: [
-        Expanded(
-            child: Center(
-                child: Text(
-          _memberModel![index].name,
-          textAlign: TextAlign.start,
-        ))),
-        Expanded(
-            child: Center(
-                child: Text(
-          _memberModel![index].email,
-          textAlign: TextAlign.start,
-        ))),
-        Expanded(
-            child: Center(
-                child: Text(
-          _memberModel![index].role,
-          textAlign: TextAlign.start,
-        ))),
-      ],
     );
   }
 
