@@ -1,9 +1,9 @@
-import 'dart:convert';
-
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart' show PaginatedDataTable;
+import 'package:flutter/material.dart';
+import 'package:zensar_challenge/customwidget/custom_dialog.dart';
 import 'package:zensar_challenge/network/api_service.dart';
 import 'package:zensar_challenge/ui/main/model/member.dart';
+import 'package:zensar_challenge/utils/show_details.dart';
 
 class UserDataNotifier with ChangeNotifier {
   UserDataNotifier() {
@@ -18,28 +18,16 @@ class UserDataNotifier with ChangeNotifier {
   set filterData(String searchText) {
     if (searchText.isNotEmpty) {
       List<MemberModel> tempSearchList = <MemberModel>[];
-      /*for (var element in memberModel) {
+      for (var element in memberModel) {
         if (element.name.toLowerCase().contains(searchText) ||
             element.email.toLowerCase().contains(searchText) ||
             element.role.toLowerCase().contains(searchText)) {
           tempSearchList.add(element);
         }
-      }*/
+      }
 
-      for (int i = 0; i < memberModel.length; i++) {
-        var element = memberModel[i];
-        if (element.name.toLowerCase().contains(searchText) ||
-            element.email.toLowerCase().contains(searchText) ||
-            element.role.toLowerCase().contains(searchText)) {
-          tempSearchList.add(element);
-        }
-      }
-      // print('memberModel is ${memberModel.length}');
-      // print('tempSearchList ${tempSearchList.length}');
       memberModel.clear();
-      if (tempSearchList.isNotEmpty) {
-        memberModel.addAll(tempSearchList);
-      }
+      memberModel.addAll(tempSearchList);
     } else {
       memberModel.clear();
       memberModel.addAll(completeData);
@@ -48,16 +36,35 @@ class UserDataNotifier with ChangeNotifier {
   }
 
   set deleteItem(id) {
-    print('Print User Id is- ${id}');
-    memberModel.remove(id);
+    memberModel.removeWhere((item) => item.id == id);
     notifyListeners();
   }
 
-  editItem() {
-    String objText =
-        '{"id":"1", "name": "bezkoder", "email": "vijay@zensar.com", "role":"admin"}';
-    MemberModel user = MemberModel.fromJson(jsonDecode(objText));
-    memberModel[memberModel.indexWhere((element) => element.id == user.id)];
+  Future<void> showDetails(BuildContext c, MemberModel data) async {
+    final result = showDialog<String>(
+      context: c,
+      builder: (_) => CustomDialog(
+        showPadding: false,
+        child: ShowDetails(data: data),
+      ),
+    );
+
+    result.then((value) {
+      var splitStr = value!.split(";");
+      memberModel.map((user) {
+        final isEditedUser = user == data;
+        if (isEditedUser) {
+          int index = memberModel.indexWhere((element) => element == user);
+          user = user.copy(
+              id: data.id,
+              name: splitStr[0],
+              email: splitStr[1],
+              role: data.role);
+          memberModel[index] = user;
+          notifyListeners();
+        }
+      }).toList();
+    });
     notifyListeners();
   }
 

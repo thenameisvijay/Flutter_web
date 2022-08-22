@@ -4,7 +4,6 @@ import 'dart:developer';
 import 'package:http/http.dart' as http;
 import 'package:zensar_challenge/constant.dart';
 import 'package:zensar_challenge/ui/main/model/member.dart';
-import 'package:zensar_challenge/ui/main/model/user_model.dart';
 
 class ApiService {
   Future<List<MemberModel>?> getMember() async {

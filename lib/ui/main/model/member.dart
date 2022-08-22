@@ -18,38 +18,14 @@ class MemberModel {
     return {'id': id, 'name': name, 'email': email, 'role': role};
   }
 
-  /*factory MemberModel.fromMap(Map map) {
-    return MemberModel(
-      id: map['id'],
-      name: map['name'],
-      email: map['email'],
-      role: map['role'],
-    );
-  }*/
-
-  final String id;
-  final String name;
-  final String email;
-  final String role;
-
-  /*factory MemberModel.fromJson(Map<String, dynamic> json) => MemberModel(
-        id: json["id"],
-        name: json["name"],
-        email: json["email"],
-        role: json['role'],
-      );*/
-
-  /*factory MemberModel.fromJson(Map<String, dynamic> json) {
-    return MemberModel(
-      id: json["id"],
-      name: json["name"],
-      email: json["email"],
-      role: json['role'],
-    );
-  }*/
+  String id;
+  String name;
+  String email;
+  String role;
 
   factory MemberModel.fromJson(dynamic json) {
-    return MemberModel(json['id'] as String, json['name'] as String, json['name'] as String, json['name'] as String );
+    return MemberModel(json['id'] as String, json['name'] as String,
+        json['email'] as String, json['role'] as String);
   }
 
   Map<String, dynamic> toJson() => {
@@ -58,4 +34,17 @@ class MemberModel {
         "email": email,
         "role": role,
       };
+
+  MemberModel copy({
+    required String id,
+    required String name,
+    required String email,
+    required String role,
+  }) =>
+      MemberModel(
+        id,
+        name,
+        email,
+        role,
+      );
 }

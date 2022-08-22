@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:zensar_challenge/customwidget/custom_dialog.dart';
 import 'package:zensar_challenge/pagination/data_notifier.dart';
 import 'package:zensar_challenge/pagination/member_datasource.dart';
 import 'package:zensar_challenge/ui/main/model/member.dart';
@@ -15,11 +16,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeState extends State<HomeScreen> {
   late List<MemberModel>? _memberModel = [];
-  late List<MemberModel>? pageList = [];
-  late final List<MemberModel>? _filterMember = [];
-  bool isChecked = false;
-  var selectedIndexes = [];
-  List multipleSelected = [];
   late BuildContext dialogContext;
   final myController = TextEditingController();
   int _rowPerPage = PaginatedDataTable.defaultRowsPerPage;
@@ -27,7 +23,6 @@ class _HomeState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    // Future.delayed(defaultDuration).then((value) => setState(() {}));
     myController.addListener(() {});
   }
 
@@ -61,30 +56,24 @@ class _HomeState extends State<HomeScreen> {
                 );
               }
               _memberModel = provider.userModel;
-              var dataSource = MemberDataSource(_memberModel!, provider);
+              var dataSource = MemberDataSource(_memberModel!, provider, context);
               return Column(
                 children: <Widget>[
                   getSearchView(provider),
-                  // getRowHeader(),
-                  // getListView(pageList),
-                  getDataTable(_memberModel,  dataSource),
+                  getDataTable(_memberModel, dataSource),
                 ],
               );
             })));
   }
 
-  Widget getDataTable(List<MemberModel>? data,
-      MemberDataSource dataSource) {
-    // print("dataSource${dataSource.}");
+  Widget getDataTable(List<MemberModel>? data, MemberDataSource dataSource) {
     return Card(
         elevation: 5,
         margin: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 0),
         child: Container(
             width: MediaQuery.of(context).size.width * 0.75,
-            // height: MediaQuery.of(context).size.width * 0.40,
             child: SingleChildScrollView(
               child: PaginatedDataTable(
-                // columnSpacing: 155.0,
                 columns: const [
                   DataColumn(
                     label: Text('ID', style: TextStyle(fontSize: 21)),
@@ -159,7 +148,6 @@ class _HomeState extends State<HomeScreen> {
             shape: const RoundedRectangleBorder(
                 borderRadius: BorderRadius.all(Radius.circular(30.0))),
             onPressed: () {
-              // searchInList(myController.text);
               provider.filterData = myController.text;
             },
           ),
@@ -179,7 +167,6 @@ class _HomeState extends State<HomeScreen> {
             backgroundColor: Colors.transparent,
             // Retrieve the text that the user has entered by using the
             // TextEditingController.
-            // content: Text(myController.text),
             child: Center(
               child: CircularProgressIndicator(),
             ));
